@@ -50,13 +50,13 @@ To build and run the Docker container, follow these steps:
     ```
 3. Containerize the application by creating a Docker container from the built image
     ```
-    docker run -d -p 8000:8000 text-classification-api
+    docker run -p 8000:8000 text-classification-api
     ```
 4. The API will be available at `http://localhost:8000`
 5. The API documentaion will be avaialable at `http://localhost:8000/docs` or `http://localhost:8000/redoc`
    
 ## Interacting with the API
-Once the API is running, you can interact with it using HTTP requests.
+Once the API is running, you can interact with it using HTTP requests through Swagger UI.
 
 ## Acknowledgments
 This API was built with inspiration from various open-source projects and libraries. Special thanks to the developers and contributors of FastAPI, Hugging Face Transformers, and NLTK.
