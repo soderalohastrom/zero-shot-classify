@@ -45,7 +45,7 @@ def preprocess_text(text):
     text = lemmatize(text)
     return text
 
-# Load the model using FastAPI lifespan event so that teh model is loaded at the beginning for efficiency
+# Load the model using FastAPI lifespan event so that the model is loaded at the beginning for efficiency
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load the model from HuggingFace transformers library
