@@ -3,8 +3,8 @@
 # Install the required dependencies
 pip install -r requirements.txt
 
-# Make the download_model.sh script executable
-chmod +x ./model_cache/download_model.sh
+# Ensure the mount directory exists
+mkdir -p /model_cache
 
 # Run the download_model.sh script
-./model_cache/download_model.sh
+bash /model_cache/download_model.sh

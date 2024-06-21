@@ -92,9 +92,10 @@ CATEGORIES = {
 async def lifespan(app: FastAPI):
     from transformers import pipeline
     global zeroshot_classifier
+    # Load the model from the persistent cache
     zeroshot_classifier = pipeline("zero-shot-classification", 
                                 model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
-                                cache_dir="./model_cache")
+                                cache_dir="/model_cache")
     yield
     del zeroshot_classifier
 
