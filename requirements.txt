@@ -6,3 +6,5 @@ transformers==4.38.2
 uvicorn==0.29.0
 torch==2.2.2
 pytest
+tokenizers
+sentencepiece
