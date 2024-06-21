@@ -2,105 +2,142 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ValidationError
 from fastapi.encoders import jsonable_encoder
+from typing import Literal
 
-# TEXT PREPROCESSING
-# --------------------------------------------------------------------
-import re
-import string
-import nltk
-nltk.download('punkt')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-from nltk.stem import WordNetLemmatizer
+CATEGORIES = {
+    "Politics": [
+        "Conservative Traditionalist",
+        "Progressive Activist",
+        "Moderate Pragmatist",
+        "Libertarian Thinker",
+        "Apolitical Minimalist",
+        "Eco-Conscious Liberal",
+        "Independent Swing Voter",
+        "Cultural Conservative",
+        "Liberal Intellectual",
+        "Non-Political Humanist",
+        "Fiscally Conservative, Socially Liberal",
+        "Politically Flexible Pragmatist",
+        "Politically Undetermined/Unspecified"  # Fallback option
+    ],
+    "Lifestyle": [
+        "Adventurous Travelers",
+        "Health Enthusiasts",
+        "Social Butterflies",
+        "Fitness Fanatics",
+        "Culinary Explorers",
+        "Family and Community Oriented",
+        "Intellectuals and Lifelong Learners",
+        "Balanced Work-Life Advocates",
+        "Homebodies with Hobbies",
+        "Active and Outdoorsy",
+        "Spiritual and Mindful",
+        "Cultural Connoisseurs",
+        "Lifestyle Undetermined/Unspecified"  # Fallback option
+    ],
+    "Children": [
+        "No Children, Wants Children",
+        "No Children, Open to Having Children",
+        "No Children, Does Not Want Children",
+        "Has Children, Open to More",
+        "Has Children, Does Not Want More",
+        "No Preference for Having Children",
+        "Specific Conditions for Having/Accepting Children",
+        "Has Children, Specific Preferences for New Children",
+        "Adoptive Parents",
+        "No Children, Prefers Not to Have Children",
+        "No Children, Unsure About Having Children",
+        "Has Adult Children, No Interest in Having More",
+        "No Children, Prefers No Kids",
+        "Child Preference Undetermined/Unspecified"  # Fallback option
+    ],
+    "Upbringing": [
+        "Traditional Family Structure",
+        "Single Parent Household",
+        "Blended Family",
+        "Adoptive or Foster Family",
+        "Multicultural Background",
+        "Religious Upbringing",
+        "Secular Upbringing",
+        "Rural Upbringing",
+        "Urban Upbringing",
+        "Military Family Background",
+        "Immigrant Family Background",
+        "Academic-Focused Upbringing",
+        "Upbringing Undetermined/Unspecified"  # Fallback option
+    ],
+    "Geo-Familiarity": [
+        "California",
+        "Florida",
+        "Texas & Deep South",
+        "Northeast Corridor",
+        "New England",
+        "Atlantic Coast & Appalachia",
+        "Great Lakes & Midwest",
+        "Mountain West",
+        "Southwest Desert",
+        "Cascadia & Alaska",
+        "Canada",
+        "Mexico & South America",
+        "Western Europe",
+        "Australia & Pacific Island",
+        "Africa & Caribbean",
+        "Asia & Baltics",
+        "Region Undetermined/Unspecified"  # Fallback option
+    ]
+}
 
-# Function to remove URLs from text
-def remove_urls(text):
-    return re.sub(r'http[s]?://\S+', '', text)
-
-# Function to remove punctuations from text
-def remove_punctuation(text):
-    regular_punct = string.punctuation
-    return str(re.sub(r'['+regular_punct+']', '', str(text)))
-
-# Function to convert the text into lower case
-def lower_case(text):
-    return text.lower()
-
-# Function to lemmatize text
-def lemmatize(text):
-    wordnet_lemmatizer = WordNetLemmatizer()
-
-    tokens = nltk.word_tokenize(text)
-    lemma_txt = ''
-    for w in tokens:
-        lemma_txt = lemma_txt + wordnet_lemmatizer.lemmatize(w) + ' '
-
-    return lemma_txt
-
-def preprocess_text(text):
-    # Preprocess the input text
-    text = remove_urls(text)
-    text = remove_punctuation(text)
-    text = lower_case(text)
-    text = lemmatize(text)
-    return text
-
-# Load the model using FastAPI lifespan event so that the model is loaded at the beginning for efficiency
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load the model from HuggingFace transformers library
     from transformers import pipeline
     global zeroshot_classifier
-    zeroshot_classifier = pipeline("zero-shot-classification", model="MoritzLaurer/bge-m3-zeroshot-v2.0")
+    zeroshot_classifier = pipeline("zero-shot-classification", 
+                                   model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
+                                   cache_dir="./model_cache")
     yield
-    # Clean up the model and release the resources
     del zeroshot_classifier
 
-# Initialize the FastAPI app
 app = FastAPI(lifespan=lifespan)
 
-# Define the input data model
 class TextInput(BaseModel):
     text: str
-    hypothesis_template: str
-    classes_verbalized: list[str]
-    multi_label: bool = False
+    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity"]
+    # hypothesis_template: str = "The given information from this person's dating bio indicates that they most likely fit into the category of {}"
+    hypothesis_template: str = "Based on this info from their dating bio, this person is best categorized as {}"
 
-# Define the welcome endpoint
 @app.get('/')
 async def welcome():
-    return "Welcome to our Text Classification API"
+    return "Welcome to our Dating Bio Classification API"
 
-# Validate input text length
 MAX_TEXT_LENGTH = 1000
 
-# Define zero shot endpoint 
-@app.post('/analyze/{text}')
-async def classify_text(text_input:TextInput):    
+@app.post('/analyze')
+async def classify_text(text_input: TextInput):    
     try:
-        # Convert input data to JSON serializable dictionary
         text_input_dict = jsonable_encoder(text_input)
-        # Validate input data using Pydantic model
-        text_data = TextInput(**text_input_dict)  # Convert to Pydantic model
+        text_data = TextInput(**text_input_dict)
 
-        # Validate input text length
         if len(text_input.text) > MAX_TEXT_LENGTH:
             raise HTTPException(status_code=400, detail="Text length exceeds maximum allowed length")
         elif len(text_input.text) == 0:
             raise HTTPException(status_code=400, detail="Text cannot be empty")
     except ValidationError as e:
-        # Handle validation error
         raise HTTPException(status_code=422, detail=str(e))
 
     try:
-        # Perform text classification
-        return zeroshot_classifier(preprocess_text(text_input.text), 
-                                   text_input.classes_verbalized, 
-                                   hypothesis_template=text_input.hypothesis_template, 
-                                   multi_label=text_input.multi_label)
+        subcategories = CATEGORIES[text_input.category]
+        
+        predicted_label = zeroshot_classifier(
+            text_input.text, 
+            subcategories, 
+            hypothesis_template=text_input.hypothesis_template
+        )
+        
+        if predicted_label not in subcategories:
+            predicted_label = subcategories[-1]
+        
+        return {"predicted_subcategory": predicted_label}
     except ValueError as ve:
-        # Handle value error
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        # Handle other server errors
         raise HTTPException(status_code=500, detail=str(e))
