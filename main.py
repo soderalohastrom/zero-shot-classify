@@ -50,11 +50,11 @@ def preprocess_text(text):
 async def lifespan(app: FastAPI):
     # Load the model from HuggingFace transformers library
     from transformers import pipeline
-    global sentiment_task
-    sentiment_task = pipeline("sentiment-analysis", model="cardiffnlp/twitter-roberta-base-sentiment-latest", tokenizer="cardiffnlp/twitter-roberta-base-sentiment-latest")
+    global zeroshot_classifier
+    zeroshot_classifier = pipeline("zero-shot-classification", model="MoritzLaurer/bge-m3-zeroshot-v2.0")
     yield
     # Clean up the model and release the resources
-    del sentiment_task
+    del zeroshot_classifier
 
 # Initialize the FastAPI app
 app = FastAPI(lifespan=lifespan)
@@ -62,6 +62,9 @@ app = FastAPI(lifespan=lifespan)
 # Define the input data model
 class TextInput(BaseModel):
     text: str
+    hypothesis_template: str
+    classes_verbalized: list[str]
+    multi_label: bool = False
 
 # Define the welcome endpoint
 @app.get('/')
@@ -71,7 +74,7 @@ async def welcome():
 # Validate input text length
 MAX_TEXT_LENGTH = 1000
 
-# Define the sentiment analysis endpoint 
+# Define zero shot endpoint 
 @app.post('/analyze/{text}')
 async def classify_text(text_input:TextInput):    
     try:
@@ -91,7 +94,10 @@ async def classify_text(text_input:TextInput):
 
     try:
         # Perform text classification
-        return sentiment_task(preprocess_text(text_input.text))
+        return zeroshot_classifier(preprocess_text(text_input.text), 
+                                   text_input.classes_verbalized, 
+                                   hypothesis_template=text_input.hypothesis_template, 
+                                   multi_label=text_input.multi_label)
     except ValueError as ve:
         # Handle value error
         raise HTTPException(status_code=400, detail=str(ve))
