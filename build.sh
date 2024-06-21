@@ -3,5 +3,8 @@
 # Install the required dependencies
 pip install -r requirements.txt
 
-# Download and cache the model
-python -c "from transformers import pipeline; pipeline('zero-shot-classification', model='MoritzLaurer/bge-m3-zeroshot-v2.0')"
+# Make the download_model.sh script executable
+chmod +x ./model_cache/download_model.sh
+
+# Run the download_model.sh script
+./model_cache/download_model.sh

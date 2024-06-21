@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ValidationError
 from fastapi.encoders import jsonable_encoder
+from transformers import pipeline
 from typing import Literal
 
 CATEGORIES = {
@@ -92,8 +93,8 @@ async def lifespan(app: FastAPI):
     from transformers import pipeline
     global zeroshot_classifier
     zeroshot_classifier = pipeline("zero-shot-classification", 
-                                   model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
-                                   cache_dir="./model_cache")
+                                model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
+                                cache_dir="./model_cache")
     yield
     del zeroshot_classifier
 
