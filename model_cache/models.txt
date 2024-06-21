@@ -1,0 +1,5 @@
+MoritzLaurer/deberta-v3-base-zeroshot-v2.0
+MoritzLaurer/deberta-v3-large-zeroshot-v2.0
+MoritzLaurer/bge-m3-zeroshot-v2.0
+zeroshot/gte-small-quant
+DAMO-NLP-SG/zero-shot-classify-SSTuning-base
