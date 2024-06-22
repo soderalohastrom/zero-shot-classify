@@ -4,6 +4,13 @@ from pydantic import BaseModel, ValidationError
 from fastapi.encoders import jsonable_encoder
 from transformers import pipeline
 from typing import Literal, List, Dict
+import re
+import logging
+import time
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 CATEGORIES = {
     "Politics": [
@@ -91,13 +98,25 @@ CATEGORIES = {
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    from transformers import pipeline
+    from transformers import pipeline, AutoTokenizer
     global zeroshot_classifier
-    # Load the model from the persistent cache
+    logger.info("Loading zero-shot classification model...")
+    start_time = time.time()
+    
+    # Get the model's maximum sequence length
+    tokenizer = AutoTokenizer.from_pretrained("MoritzLaurer/deberta-v3-base-zeroshot-v2.0", cache_dir="/model_cache")
+    max_length = tokenizer.model_max_length
+    
+    # Load the model from the persistent cache with max_length
     zeroshot_classifier = pipeline("zero-shot-classification", 
                                 model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
-                                cache_dir="/model_cache")
+                                # model="MoritzLaurer/deberta-v3-base-zeroshot-v2.0", 
+                                # model="DAMO-NLP-SG/zero-shot-classify-SSTuning-base", 
+                                cache_dir="/model_cache",
+                                max_length=max_length)
+    logger.info(f"Model loaded in {time.time() - start_time:.2f} seconds")
     yield
+    logger.info("Shutting down and cleaning up...")
     del zeroshot_classifier
 
 app = FastAPI(lifespan=lifespan)
@@ -107,27 +126,56 @@ class TextInput(BaseModel):
     category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "All"]
     hypothesis_template: str = "Based on this info from their dating bio, this person is best categorized as {}"
 
+def preprocess_text(text):
+    logger.debug(f"Preprocessing text: {text[:50]}...")  # Log first 50 characters
+    # Remove any non-printable characters
+    text = ''.join(char for char in text if char.isprintable())
+    
+    # Replace all whitespace (including newlines) with a single space
+    text = re.sub(r'\s+', ' ', text)
+    
+    # Strip leading/trailing whitespace
+    processed_text = text.strip()
+    logger.debug(f"Preprocessed text: {processed_text[:50]}...")  # Log first 50 characters
+    return processed_text
+
 @app.get('/')
 async def welcome():
+    logger.info("Welcome endpoint accessed")
     return "Welcome to our Dating Bio Classification API"
 
 @app.post('/analyze')
-async def classify_text(text_input: TextInput):    
+async def classify_text(text_input: TextInput):
+    logger.info(f"Received classification request for category: {text_input.category}")
+    start_time = time.time()
+    
     try:
         text_input_dict = jsonable_encoder(text_input)
         text_data = TextInput(**text_input_dict)
 
         if len(text_input.text) == 0:
+            logger.warning("Received empty text input")
             raise HTTPException(status_code=400, detail="Text cannot be empty")
     except ValidationError as e:
+        logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=422, detail=str(e))
 
     try:
+        # Preprocess the input text
+        preprocessed_text = preprocess_text(text_input.text)
+
+        debug_info = {
+            "preprocessed_text": preprocessed_text,
+            "category_results": {}
+        }
+
         if text_input.category == "All":
+            logger.info("Processing all categories")
             results = {}
             for category, subcategories in CATEGORIES.items():
+                logger.debug(f"Classifying for category: {category}")
                 result = zeroshot_classifier(
-                    text_input.text, 
+                    preprocessed_text, 
                     subcategories, 
                     hypothesis_template=text_input.hypothesis_template
                 )
@@ -135,19 +183,44 @@ async def classify_text(text_input: TextInput):
                 if predicted_label not in subcategories:
                     predicted_label = subcategories[-1]
                 results[category] = predicted_label
-            return {"predicted_subcategories": results}
+                
+                # Add debug information
+                debug_info["category_results"][category] = {
+                    "subcategories": result['labels'],
+                    "scores": result['scores']
+                }
+            
+            logger.info(f"Classification completed in {time.time() - start_time:.2f} seconds")
+            return {
+                "predicted_subcategories": results,
+                "debug_info": debug_info
+            }
         else:
+            logger.info(f"Processing single category: {text_input.category}")
             subcategories = CATEGORIES[text_input.category]
             result = zeroshot_classifier(
-                text_input.text, 
+                preprocessed_text, 
                 subcategories, 
                 hypothesis_template=text_input.hypothesis_template
             )
             predicted_label = result['labels'][0]
             if predicted_label not in subcategories:
                 predicted_label = subcategories[-1]
-            return {"predicted_subcategory": predicted_label}
+            
+            # Add debug information
+            debug_info["category_results"][text_input.category] = {
+                "subcategories": result['labels'],
+                "scores": result['scores']
+            }
+            
+            logger.info(f"Classification completed in {time.time() - start_time:.2f} seconds")
+            return {
+                "predicted_subcategory": predicted_label,
+                "debug_info": debug_info
+            }
     except ValueError as ve:
+        logger.error(f"ValueError: {str(ve)}")
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

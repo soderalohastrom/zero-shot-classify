@@ -1,0 +1,16 @@
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - 8001:8001
+    volumes:
+      - model-cache:/model_cache
+      - ./model_cache:/app/model_cache
+      - huggingface-cache:/tmp/.cache/huggingface
+      - nltk-data:/tmp/nltk_data
+
+volumes:
+  model-cache:
+  huggingface-cache:
+  nltk-data:
