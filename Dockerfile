@@ -7,7 +7,7 @@
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
 ARG PYTHON_VERSION=3.11.9
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:${PYTHON_VERSION}-slim AS base
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -17,6 +17,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
+
+# Create the model cache directory with appropriate permissions
+RUN mkdir -p /model_cache && chmod -R 777 /model_cache
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
@@ -56,8 +59,17 @@ RUN mkdir -p $NLTK_DATA && chmod -R 777 $NLTK_DATA
 # Copy the source code into the container.
 COPY . .
 
+# Copy the model_cache directory to the container
+COPY --chmod=755 model_cache ./model_cache
+
+# Run the script to download and cache the model and tokenizer
+RUN ./model_cache/download_model.sh
+
+# Make sure numpy is installed
+RUN pip install numpy
+
 # Expose the port that the application listens on.
-EXPOSE 8000
+EXPOSE 8001
 
 # Run the application.
-CMD uvicorn 'main:app' --host=0.0.0.0 --port=8000
+CMD ["uvicorn", "main:app", "--host=0.0.0.0", "--port=8001"]

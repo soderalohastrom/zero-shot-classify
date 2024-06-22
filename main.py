@@ -19,7 +19,7 @@ CATEGORIES = {
         "Non-Political Humanist",
         "Fiscally Conservative, Socially Liberal",
         "Politically Flexible Pragmatist",
-        "Politically Undetermined/Unspecified"  # Fallback option
+        "Politically Undetermined"  # Fallback option
     ],
     "Lifestyle": [
         "Adventurous Travelers",
@@ -34,7 +34,7 @@ CATEGORIES = {
         "Active and Outdoorsy",
         "Spiritual and Mindful",
         "Cultural Connoisseurs",
-        "Lifestyle Undetermined/Unspecified"  # Fallback option
+        "Lifestyle Undetermined"  # Fallback option
     ],
     "Children": [
         "No Children, Wants Children",
@@ -50,7 +50,7 @@ CATEGORIES = {
         "No Children, Unsure About Having Children",
         "Has Adult Children, No Interest in Having More",
         "No Children, Prefers No Kids",
-        "Child Preference Undetermined/Unspecified"  # Fallback option
+        "Child Preference Undetermined"  # Fallback option
     ],
     "Upbringing": [
         "Traditional Family Structure",
@@ -65,26 +65,27 @@ CATEGORIES = {
         "Military Family Background",
         "Immigrant Family Background",
         "Academic-Focused Upbringing",
-        "Upbringing Undetermined/Unspecified"  # Fallback option
+        "Upbringing Undetermined"  # Fallback option
     ],
     "Geo-Familiarity": [
         "California",
         "Florida",
         "Texas & Deep South",
-        "Northeast Corridor",
-        "New England",
+        "NYC & DC to Boston Corridor",
+        "Northern New England",
         "Atlantic Coast & Appalachia",
         "Great Lakes & Midwest",
-        "Mountain West",
+        "Mountain West and Prairie",
         "Southwest Desert",
         "Cascadia & Alaska",
         "Canada",
         "Mexico & South America",
         "Western Europe",
+        "Middle East & North Africa",
         "Australia & Pacific Island",
-        "Africa & Caribbean",
-        "Asia & Baltics",
-        "Region Undetermined/Unspecified"  # Fallback option
+        "Tropical Africa & Caribbean",
+        "Asia & The Baltics",
+        "Region Undetermined"  # Fallback option
     ]
 }
 
@@ -129,11 +130,21 @@ async def classify_text(text_input: TextInput):
     try:
         subcategories = CATEGORIES[text_input.category]
         
-        predicted_label = zeroshot_classifier(
+        # Debugging: Print input text and subcategories
+        print(f"Input text: {text_input.text}")
+        print(f"Subcategories: {subcategories}")
+        
+        result = zeroshot_classifier(
             text_input.text, 
             subcategories, 
             hypothesis_template=text_input.hypothesis_template
         )
+        
+        # Debugging: Print the result from the classifier
+        print(f"Classifier result: {result}")
+        
+        # Extract the predicted label with the highest score
+        predicted_label = result['labels'][0]
         
         if predicted_label not in subcategories:
             predicted_label = subcategories[-1]

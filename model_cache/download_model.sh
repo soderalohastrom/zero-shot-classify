@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Ensure we're in the correct directory
-cd /model_cache
+# Change to the directory containing the download_model.py script
+cd /app/model_cache
 
-# Run the Python script
+# Run the download_model.py script
 python download_model.py
