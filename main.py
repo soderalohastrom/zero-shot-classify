@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ValidationError
 from fastapi.encoders import jsonable_encoder
 from transformers import pipeline
-from typing import Literal
+from typing import Literal, List, Dict
 
 CATEGORIES = {
     "Politics": [
@@ -104,15 +104,12 @@ app = FastAPI(lifespan=lifespan)
 
 class TextInput(BaseModel):
     text: str
-    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity"]
-    # hypothesis_template: str = "The given information from this person's dating bio indicates that they most likely fit into the category of {}"
+    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "All"]
     hypothesis_template: str = "Based on this info from their dating bio, this person is best categorized as {}"
 
 @app.get('/')
 async def welcome():
     return "Welcome to our Dating Bio Classification API"
-
-MAX_TEXT_LENGTH = 1000
 
 @app.post('/analyze')
 async def classify_text(text_input: TextInput):    
@@ -120,36 +117,36 @@ async def classify_text(text_input: TextInput):
         text_input_dict = jsonable_encoder(text_input)
         text_data = TextInput(**text_input_dict)
 
-        if len(text_input.text) > MAX_TEXT_LENGTH:
-            raise HTTPException(status_code=400, detail="Text length exceeds maximum allowed length")
-        elif len(text_input.text) == 0:
+        if len(text_input.text) == 0:
             raise HTTPException(status_code=400, detail="Text cannot be empty")
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
     try:
-        subcategories = CATEGORIES[text_input.category]
-        
-        # Debugging: Print input text and subcategories
-        print(f"Input text: {text_input.text}")
-        print(f"Subcategories: {subcategories}")
-        
-        result = zeroshot_classifier(
-            text_input.text, 
-            subcategories, 
-            hypothesis_template=text_input.hypothesis_template
-        )
-        
-        # Debugging: Print the result from the classifier
-        print(f"Classifier result: {result}")
-        
-        # Extract the predicted label with the highest score
-        predicted_label = result['labels'][0]
-        
-        if predicted_label not in subcategories:
-            predicted_label = subcategories[-1]
-        
-        return {"predicted_subcategory": predicted_label}
+        if text_input.category == "All":
+            results = {}
+            for category, subcategories in CATEGORIES.items():
+                result = zeroshot_classifier(
+                    text_input.text, 
+                    subcategories, 
+                    hypothesis_template=text_input.hypothesis_template
+                )
+                predicted_label = result['labels'][0]
+                if predicted_label not in subcategories:
+                    predicted_label = subcategories[-1]
+                results[category] = predicted_label
+            return {"predicted_subcategories": results}
+        else:
+            subcategories = CATEGORIES[text_input.category]
+            result = zeroshot_classifier(
+                text_input.text, 
+                subcategories, 
+                hypothesis_template=text_input.hypothesis_template
+            )
+            predicted_label = result['labels'][0]
+            if predicted_label not in subcategories:
+                predicted_label = subcategories[-1]
+            return {"predicted_subcategory": predicted_label}
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
