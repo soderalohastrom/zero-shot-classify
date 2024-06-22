@@ -29,7 +29,7 @@ CATEGORIES = {
         "Politically Undetermined"  # Fallback option
     ],
     "Lifestyle": [
-        "Adventurous Travelers",
+        "Adventurous Traveler",
         "Health Enthusiasts",
         "Social Butterflies",
         "Fitness Fanatics",
@@ -41,6 +41,24 @@ CATEGORIES = {
         "Active and Outdoorsy",
         "Spiritual and Mindful",
         "Cultural Connoisseurs",
+        "Wellness and Self-Care Advocates",
+        "Social and Professional Networkers",
+        "Community Builders and Volunteers",
+        "Nature Lovers and Environmentalists",
+        "Simplifiers and Decluttering Enthusiasts",
+        "Philanthropists and Humanitarians",
+        "Fashion and Style Enthusiasts",
+        "Pet Owners and Animal Lovers",
+        "Adrenaline Junkies and Thrill Seekers",
+        "Collectors and Antique Enthusiasts",
+        "Sustainable Living Advocates",
+        "Career Achievers and Go-Getters",
+        "Luxury and High-End Lifestyle Enthusiasts",
+        "Free Spirits and Nonconformists",
+        "Classic and Timeless Style Aficionados",
+        "Country Living and Rustic Enthusiasts",
+        "City Dwellers and Urban Explorers",
+        "Digital Nomads and Remote Workers",
         "Lifestyle Undetermined"  # Fallback option
     ],
     "Children": [
