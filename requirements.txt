@@ -2,9 +2,9 @@ fastapi
 nest_asyncio
 nltk
 pydantic
-transformers
+torch==2.0.0
+transformers[torch]==4.29.2
 uvicorn
-torch
 pytest
 tokenizers
 sentencepiece

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: text-classification-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: text-classification-api
+  template:
+    metadata:
+      labels:
+        app: text-classification-api
+    spec:
+      containers:
+      - name: text-classification-api
+        image: gcr.io/cloud-assist-420119/text-classification-api
+        ports:
+        - containerPort: 8001
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-tesla-t4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: text-classification-api
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8001
+  selector:
+    app: text-classification-api

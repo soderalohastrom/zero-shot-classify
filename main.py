@@ -84,14 +84,22 @@ CATEGORIES = {
         "Adoptive or Foster Family",
         "Multicultural Background",
         "Religious Upbringing",
-        "Secular Upbringing",
+        "Scholarly Upbringing",
+        "Migratory Upbringing",
         "Rural Upbringing",
+        "Inner-City Upbringing",
         "Urban Upbringing",
+        "Urban - Unconventional",
+        "Suburban Upbringing",
+        "Suburban - Unconventional",
         "Military Family Background",
         "Immigrant Family Background",
         "Academic-Focused Upbringing",
+        "Bohemian - Communal Upbringing",
+        "Arts Oriented Family Upbringing",
         "Upbringing Undetermined"  # Fallback option
     ],
+    
     "Geo-Familiarity": [
         "California",
         "Florida",
@@ -130,7 +138,7 @@ async def lifespan(app: FastAPI):
                                 model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
                                 # model="MoritzLaurer/deberta-v3-base-zeroshot-v2.0", 
                                 # model="DAMO-NLP-SG/zero-shot-classify-SSTuning-base", 
-                                cache_dir="/model_cache",
+                                # model="facebook/bart-large-mnli",                            cache_dir="/model_cache",
                                 max_length=max_length)
     logger.info(f"Model loaded in {time.time() - start_time:.2f} seconds")
     yield
