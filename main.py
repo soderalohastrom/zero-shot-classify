@@ -98,8 +98,8 @@ CATEGORIES = {
         "Entrepreneurial Family",
         "Bohemian - Communal Upbringing",
         "Artistic or Creative Family",
-        "Upbringing Undetermined"  # Fallback option    ],
-    
+        "Upbringing Undetermined"  # Fallback option   
+    ],
     "Geo-Familiarity": [
         "California",
         "Florida",
@@ -120,7 +120,6 @@ CATEGORIES = {
         "Asia & The Baltics",
         "Region Undetermined"  # Fallback option
     ],
-    
     "Why-Single": [
         "Divorced - Married too young",
         "Divorced - Long marriage, grew apart",
