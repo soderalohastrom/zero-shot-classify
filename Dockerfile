@@ -28,6 +28,9 @@ COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements.txt
 
+# Add the following line after the existing dependencies
+RUN pip install numpy==1.26.4
+
 # Set environment variables
 ENV TRANSFORMERS_CACHE=/tmp/.cache/huggingface
 ENV NLTK_DATA=/tmp/nltk_data

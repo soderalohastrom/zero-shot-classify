@@ -8,4 +8,4 @@ uvicorn
 pytest
 tokenizers
 sentencepiece
-numpy
+numpy==1.26.4
