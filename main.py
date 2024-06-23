@@ -14,8 +14,10 @@ logger = logging.getLogger(__name__)
 
 CATEGORIES = {
     "Politics": [
-        "Conservative Traditionalist",
+        "Republican Family Traditionalists",
+        "God and Guns Conservatives",
         "Progressive Activist",
+        "Loyal Democratic Voter",
         "Moderate Pragmatist",
         "Libertarian Thinker",
         "Apolitical Minimalist",
@@ -26,8 +28,9 @@ CATEGORIES = {
         "Non-Political Humanist",
         "Fiscally Conservative, Socially Liberal",
         "Politically Flexible Pragmatist",
-        "Politically Undetermined"  # Fallback option
-    ],
+        "Trump Followers",
+        "Politics Undetermined"  # Fallback option
+    ],    
     "Lifestyle": [
         "Adventurous Traveler",
         "Health Enthusiasts",
@@ -47,10 +50,8 @@ CATEGORIES = {
         "Nature Lovers and Environmentalists",
         "Simplifiers and Decluttering Enthusiasts",
         "Philanthropists and Humanitarians",
-        "Fashion and Style Enthusiasts",
         "Pet Owners and Animal Lovers",
         "Adrenaline Junkies and Thrill Seekers",
-        "Collectors and Antique Enthusiasts",
         "Sustainable Living Advocates",
         "Career Achievers and Go-Getters",
         "Luxury and High-End Lifestyle Enthusiasts",
@@ -84,27 +85,26 @@ CATEGORIES = {
         "Adoptive or Foster Family",
         "Multicultural Background",
         "Religious Upbringing",
-        "Scholarly Upbringing",
         "Migratory Upbringing",
         "Rural Upbringing",
-        "Inner-City Upbringing",
+        "Inner-City Upbringing", 
         "Urban Upbringing",
-        "Urban - Unconventional",
+        "Rural, then Urban",
         "Suburban Upbringing",
-        "Suburban - Unconventional",
+        "Suburban - Unconventional"
         "Military Family Background",
         "Immigrant Family Background",
         "Academic-Focused Upbringing",
+        "Entrepreneurial Family",
         "Bohemian - Communal Upbringing",
-        "Arts Oriented Family Upbringing",
-        "Upbringing Undetermined"  # Fallback option
-    ],
+        "Artistic or Creative Family",
+        "Upbringing Undetermined"  # Fallback option    ],
     
     "Geo-Familiarity": [
         "California",
         "Florida",
         "Texas & Deep South",
-        "NYC & DC to Boston Corridor",
+        "NYC & DC-to-Boston Corridor",
         "Northern New England",
         "Atlantic Coast & Appalachia",
         "Great Lakes & Midwest",
@@ -119,9 +119,32 @@ CATEGORIES = {
         "Tropical Africa & Caribbean",
         "Asia & The Baltics",
         "Region Undetermined"  # Fallback option
-    ]
+    ],
+    
+    "Why-Single": [
+        "Divorced - Married too young",
+        "Divorced - Long marriage, grew apart",
+        "Divorced - Infidelity",
+        "Divorced - Incompatibility",
+        "Divorced - Spouse's personal issues",
+        "Divorced - Disagreements over having children",
+        "Divorced - Career or lifestyle differences",
+        "Divorced - Lack of emotional intimacy or connection",
+        "Divorced - Other reasons",
+        "Widowed - Ready to find love again",
+        "Never married - Focused on career or personal growth",
+        "Never married - Hasn't found the right person",
+        "Long-term relationship ended - Incompatibility",
+        "Long-term relationship ended - Distance or logistics",
+        "Long-term relationship ended - Commitment issues",
+        "Long-term relationship ended - Other reasons",
+        "Dating casually - Seeking the right connection",
+        "Relationship history varied - Open to new possibilities",
+        "Prefers not to say",
+        "Relationship History Undetermined"  # Fallback option
+    ],
 }
-
+    
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from transformers import pipeline, AutoTokenizer
@@ -149,7 +172,7 @@ app = FastAPI(lifespan=lifespan)
 
 class TextInput(BaseModel):
     text: str
-    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "All"]
+    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "Why-Single", "All"]
     hypothesis_template: str = "Based on this info from their dating bio, this person is best categorized as {}"
 
 def preprocess_text(text):
