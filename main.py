@@ -179,8 +179,8 @@ async def lifespan(app: FastAPI):
     
     # Load the model from the persistent cache with max_length
     zeroshot_classifier = pipeline("zero-shot-classification", 
-                                model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
-                                # model="MoritzLaurer/deberta-v3-base-zeroshot-v2.0", 
+                                # model="MoritzLaurer/bge-m3-zeroshot-v2.0", 
+                                model="MoritzLaurer/deberta-v3-base-zeroshot-v2.0", 
                                 # model="DAMO-NLP-SG/zero-shot-classify-SSTuning-base", 
                                 # model="facebook/bart-large-mnli",                            cache_dir="/model_cache",
                                 max_length=max_length)
