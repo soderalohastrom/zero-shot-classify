@@ -142,6 +142,28 @@ CATEGORIES = {
         "Prefers not to say",
         "Relationship History Undetermined"  # Fallback option
     ],
+      "Looking-For": [
+        "Attractive and Physically Fit",
+        "Intelligent and Intellectually Curious",
+        "Kind and Compassionate",
+        "Independent and Career-Driven",
+        "Adventurous and Spontaneous",
+        "Family-Oriented and Nurturing",
+        "Shared Interests and Lifestyle",
+        "Emotionally Mature and Stable",
+        "Strong Communicator and Supportive",
+        "Confident and Self-Assured",
+        "Loyal and Trustworthy",
+        "Humorous and Fun-Loving",
+        "Cultured and Well-Rounded",
+        "Affectionate and Romantic",
+        "Spiritual or Faith-Oriented",
+        "Social and Outgoing",
+        "Domestic and Home-Oriented",
+        "Successful and Ambitious",
+        "Generous and Supportive",
+        "Looking For Undetermined"
+    ]
 }
     
 @asynccontextmanager
@@ -171,7 +193,7 @@ app = FastAPI(lifespan=lifespan)
 
 class TextInput(BaseModel):
     text: str
-    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "Why-Single", "All"]
+    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "Why-Single", "Looking-For", "All"]
     hypothesis_template: str = "Based on this info from their dating bio, this person is best categorized as {}"
 
 def preprocess_text(text):
