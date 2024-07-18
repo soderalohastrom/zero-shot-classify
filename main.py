@@ -163,6 +163,24 @@ CATEGORIES = {
         "Successful and Ambitious",
         "Generous and Supportive",
         "Looking For Undetermined"
+    ],
+        "Work-life": [
+        "Business and Finance",
+        "Technology",
+        "Healthcare",
+        "Legal and Law",
+        "Real Estate",
+        "Education",
+        "Arts and Entertainment",
+        "Sales and Marketing",
+        "Engineering and Manufacturing",
+        "Hospitality and Service Industry",
+        "Entrepreneur and Self-Employed",
+        "Retired",
+        "Work-Life Balance",
+        "Wealth and Investments",
+        "Independently Wealthy",
+        "Unable to Determine"
     ]
 }
     
