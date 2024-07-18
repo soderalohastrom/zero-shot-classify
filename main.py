@@ -211,7 +211,7 @@ app = FastAPI(lifespan=lifespan)
 
 class TextInput(BaseModel):
     text: str
-    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "Why-Single", "Looking-For", "All"]
+    category: Literal["Politics", "Lifestyle", "Children", "Upbringing", "Geo-Familiarity", "Why-Single", "Looking-For", "Work-life", "All"]
     hypothesis_template: str = "Based on this info from their dating bio, this person is best categorized as {}"
 
 def preprocess_text(text):
